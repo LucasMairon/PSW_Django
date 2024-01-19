@@ -47,3 +47,9 @@ class Desafio(models.Model):
 
     def __str__(self):
         return self.titulo
+    
+    def status(self):
+        respondidas = self.flashcards.all().filter(respondido = True).count()
+        if respondidas < self.quantidade_perguntas:
+            return 'Pendente'
+        return 'Completo'

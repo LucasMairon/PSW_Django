@@ -103,7 +103,10 @@ def iniciar_desafio(request):
         return redirect("/flashcard/listar_desafio/")
 
 def listar_desafio(request):
-    desafios = Desafio.objects.filter(user = request.user)
+    if request.method == "GET":
+        desafios = Desafio.objects.filter(user = request.user)
+        categoria = Categoria.objects.all()
+        return render(request, 'listar_desafio.html', {'categorias' : categoria, 'desafios' : desafios})
     return render(request, 'listar_desafio.html',{'desafios': desafios})
 
 def desafio(request, id):
@@ -127,3 +130,23 @@ def responder_flashcard(request, id):
     flashcard_desafio.acertou = True if acertou == '1' else False
     flashcard_desafio.save()
     return redirect(f'/flashcard/desafio/{desafio_id}/')
+
+def relatorio(request,id):
+    desafio = Desafio.objects.get(id = id)
+
+    acertos = desafio.flashcards.filter(acertou = True).count()
+    erros = desafio.flashcards.filter(acertou = False).count()
+
+    dados = [acertos,erros]
+
+    categorias = desafio.categoria.all()
+    name_categoria = []
+    for i in categorias:
+        name_categoria.append(i.nome)
+
+    dados2 = []
+    for categoria in categorias:
+        dados2.append(desafio.flashcards.filter(flashcard__categoria = categoria).filter(acertou = True).count())
+
+    # TODO fazer o ranking
+    return render(request, 'relatorio.html', {'desafio' : desafio, 'dados' : dados, 'categorias' : name_categoria, 'dados2' : dados2})
